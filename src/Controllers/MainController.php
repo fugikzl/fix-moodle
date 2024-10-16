@@ -72,6 +72,6 @@ class MainController extends BaseController implements RequestHandlerInterface
 
     private function replaceHost(string $body): string
     {
-        return str_replace('https://' . $this->targetHostReplace, 'http://' . $this->replaceHost, $body);
+        return str_replace($this->targetHostReplace, $this->replaceHost, $body);
     }
 }
