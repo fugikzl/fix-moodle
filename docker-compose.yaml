@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: php app.php 85.159.27.128 moodle.astanait.edu.kz 127.0.0.1:7777 7777
+    ports:
+      - "7777:7777"

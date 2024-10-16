@@ -18,8 +18,9 @@ use Slim\Psr7\Factory\{
     StreamFactory,
     UploadedFileFactory
 };
+use Slim\Logger;
 
-return (function (): Container {
+return function (string $targetHost, string $targetHostReplace, string $replaceHost): Container {
     $containerBuilder = new ContainerBuilder();
 
     $responseFactory = new ResponseFactory();
@@ -32,16 +33,17 @@ return (function (): Container {
         ServerRequestFactoryInterface::class => $serverRequestFactory,
         StreamFactoryInterface::class => $streamFactory,
         UploadedFileFactoryInterface::class => $uploadedFileFactory,
-        MainController::class => function (ContainerInterface $container): MainController {
+        MainController::class => function (ContainerInterface $container) use ($targetHost, $targetHostReplace, $replaceHost): MainController {
             return new MainController(
                 $container->get(ResponseFactoryInterface::class),
                 $container->get(StreamFactoryInterface::class),
-                '85.159.27.128',
-                'moodle.astanait.edu.kz',
-                '127.0.0.1:8000'
+                new Logger(),
+                $targetHost,
+                $targetHostReplace,
+                $replaceHost
             );
         }
     ]);
 
     return $containerBuilder->build();
-})();
+};

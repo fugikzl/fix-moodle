@@ -10,12 +10,14 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
 class MainController extends BaseController implements RequestHandlerInterface
 {
     public function __construct(
         private readonly ResponseFactoryInterface $responseFactory,
         private readonly StreamFactoryInterface $streamFactory,
+        private readonly LoggerInterface $loggerInterface,
         private readonly string $targetHost,
         private readonly string $targetHostReplace,
         private readonly string $replaceHost,
@@ -32,14 +34,14 @@ class MainController extends BaseController implements RequestHandlerInterface
         $uri = $request->getServerParams()['REQUEST_URI'];
         $url = (empty($uri) || $uri === '/')
             ? 'https://' . $this->targetHost
-            : $this->targetHost . '/' . $uri
+            : 'https://' . $this->targetHost . $uri
         ;
 
         $headers = array_merge($request->getHeaders(), [
             'Host' => [$this->targetHostReplace],
         ]);
 
-        echo "$url\n";
+        $this->loggerInterface->debug($url);
 
         $clientResponse = (new GuzzleHttpClient([
             'verify' => false,
@@ -49,8 +51,6 @@ class MainController extends BaseController implements RequestHandlerInterface
             'body' => $request->getBody()->getContents(),
             'headers' => $headers
         ]);
-
-        echo "Received response\n";
 
         $response = $this->responseFactory->createResponse(
             $clientResponse->getStatusCode(),
@@ -72,6 +72,6 @@ class MainController extends BaseController implements RequestHandlerInterface
 
     private function replaceHost(string $body): string
     {
-        return str_replace($this->targetHostReplace, $this->replaceHost, $body);
+        return str_replace('https://' . $this->targetHostReplace, 'http://' . $this->replaceHost, $body);
     }
 }
